@@ -3,62 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Questionador</title>
+    <title>Sistema Interativo de Questionários</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Visualization & Content Choices:
-        - Questionário: Dropdowns/checkboxes for selection, text for questions/feedback, radio buttons for options. Goal: Conduct quiz. Method: Standard form elements. Interaction: Click, select. Justification: Familiar UX for quizzes.
-        - Gerenciar Conteúdo (Questões - Manual): Form inputs (text, dropdown, dynamic radio for correct option). Goal: Add question. Method: HTML forms. Interaction: Type, select. Justification: Standard data entry.
-        - Gerenciar Conteúdo (Questões - CSV): File input, text instructions. Goal: Batch import. Method: HTML file input. Interaction: Browse, (conceptual) import. Justification: Common for bulk data. (Note: Full client-side CSV parsing is complex, UI and data structure focus).
-        - Gerenciar Conteúdo (Bancas): Form for adding, list for viewing. Goal: Manage exam categories. Method: HTML form/list. Interaction: Type, add. Justification: Simple CRUD interface.
-        - Estatísticas (Geral): Text display of key metrics. Goal: Inform. Method: HTML text. Interaction: None. Justification: Quick summary.
-        - Estatísticas (Acertos/Total): Donut chart. Goal: Inform overall accuracy. Method: Chart.js (Canvas). Interaction: Tooltips. Justification: Clear visual representation of proportions.
-        - Estatísticas (Conteúdos mais praticados): Bar chart. Goal: Show frequently attempted themes. Method: Chart.js (Canvas). Interaction: Tooltips. Justification: Visual comparison of practice frequency.
-        - Estatísticas (Desempenho por Disciplina): Bar chart. Goal: Compare. Method: Chart.js (Canvas). Interaction: Tooltips. Justification: Visual comparison of performance.
-        - Estatísticas (Disciplinas que Carecem de Estudo): Styled list. Goal: Highlight areas for improvement. Method: HTML list. Interaction: None. Justification: Clear, ranked information.
-        - Estatísticas (Conteúdos que mais precisam de prática): Styled list. Goal: Highlight themes with highest error rates. Method: HTML list. Interaction: None. Justification: Clear, ranked information for focused study.
-        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f5f5f0; /* Warm Neutral - Calm Beige like */ }
+        body { font-family: 'Inter', sans-serif; background-color: #f5f5f0; }
         .nav-button { transition: all 0.3s ease; }
-        .nav-button.active { background-color: #008080; /* Soft Teal */ color: white; }
-        .nav-button:hover:not(.active) { background-color: #e0e0d1; /* Lighter Beige for hover */ }
+        .nav-button.active { background-color: #008080; color: white; }
+        .nav-button:hover:not(.active) { background-color: #e0e0d1; }
         .content-section { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; margin-top: 20px; }
         .form-input, .form-select, .form-textarea {
             border: 1px solid #cccccc; padding: 10px; border-radius: 6px; width: 100%;
             margin-top: 5px; margin-bottom: 10px; box-sizing: border-box;
         }
         .btn {
-            background-color: #008080; /* Soft Teal */ color: white; padding: 10px 20px;
+            background-color: #008080; color: white; padding: 10px 20px;
             border-radius: 6px; text-align: center; cursor: pointer; transition: background-color 0.3s ease;
             display: inline-block; border: none;
         }
-        .btn:hover { background-color: #006666; /* Darker Teal */ }
-        .btn-secondary { background-color: #a9a9a9; /* Dark Gray */ }
+        .btn:hover { background-color: #006666; }
+        .btn-secondary { background-color: #a9a9a9; }
         .btn-secondary:hover { background-color: #8c8c8c; }
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 700px; /* Max width for chart readability */
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
-            height: 350px; /* Base height */
-            max-height: 400px; /* Max height */
+            height: 350px;
+            max-height: 400px;
         }
-        @media (min-width: 768px) { /* md breakpoint */
+        @media (min-width: 768px) {
             .chart-container {
                 height: 400px;
             }
         }
-        /* Custom scrollbar for lists if needed */
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #008080; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #006666; }
 
-        /* Radio button and checkbox custom styling for better look */
         input[type="radio"], input[type="checkbox"] {
-            accent-color: #008080; /* Soft Teal */
+            accent-color: #008080;
             margin-right: 8px;
             transform: scale(1.2);
         }
@@ -86,13 +72,17 @@
             <section id="sectionQuestionario" class="content-section">
                 <h2 class="text-2xl font-semibold mb-4 text-[#006666]">Iniciar Novo Questionário</h2>
                 <p class="mb-6 text-gray-700">
-                    Bem-vindo à seção de questionários! Aqui você pode testar seus conhecimentos selecionando uma banca examinadora e os temas de seu interesse.
-                    Prepare-se, escolha suas opções e veja seu desempenho ao final. Boa sorte!
+                    Bem-vindo à seção de questionários! Aqui você pode testar seus conhecimentos selecionando uma banca examinadora,
+                    os temas de seu interesse, ou escolher um modelo de prova predefinido.
                 </p>
 
                 <div id="quizSetup">
                     <div class="mb-4">
-                        <label for="selectBanca" class="block text-lg font-medium text-gray-700 mb-1">Selecione a Banca:</label>
+                        <label for="selectModeloProva" class="block text-lg font-medium text-gray-700 mb-1">Selecione um Modelo de Prova (Opcional):</label>
+                        <select id="selectModeloProva" class="form-select"></select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="selectBanca" class="block text-lg font-medium text-gray-700 mb-1">Ou selecione a Banca:</label>
                         <select id="selectBanca" class="form-select"></select>
                     </div>
                     <div class="mb-4">
@@ -123,8 +113,8 @@
             <section id="sectionGerenciar" class="content-section hidden">
                 <h2 class="text-2xl font-semibold mb-4 text-[#006666]">Gerenciar Conteúdo</h2>
                 <p class="mb-6 text-gray-700">
-                    Nesta seção, você pode administrar o banco de dados do sistema. Adicione novas perguntas manualmente,
-                    importe um conjunto de perguntas através de um arquivo CSV, ou gerencie as bancas examinadoras cadastradas.
+                    Nesta seção, você pode administrar o banco de dados do sistema: gerencie bancas, disciplinas,
+                    modelos de prova, e adicione perguntas manualmente ou via CSV.
                 </p>
 
                 <div class="space-y-8">
@@ -133,12 +123,12 @@
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <h4 class="text-lg font-medium mb-2">Adicionar Nova Banca</h4>
-                                <label for="novaBancaNome" class="block text-sm font-medium text-gray-700">Nome da Banca:</label>
-                                <input type="text" id="novaBancaNome" class="form-input">
-                                <label for="novaBancaNumOpcoes" class="block text-sm font-medium text-gray-700 mt-2">Número de Opções:</label>
+                                <label for="novaBancaNome" class="block text-sm font-medium text-gray-700 mb-1">Nome da Banca:</label>
+                                <input type="text" id="novaBancaNome" class="form-input" placeholder="Ex: CEBRASPE">
+                                <label for="novaBancaNumOpcoes" class="block text-sm font-medium text-gray-700 mb-1">Número de Opções:</label>
                                 <input type="number" id="novaBancaNumOpcoes" class="form-input" min="2" max="10" value="5">
-                                <label for="novaBancaDescricao" class="block text-sm font-medium text-gray-700 mt-2">Descrição:</label>
-                                <input type="text" id="novaBancaDescricao" class="form-input">
+                                <label for="novaBancaDescricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição (Opcional):</label>
+                                <input type="text" id="novaBancaDescricao" class="form-input" placeholder="Ex: Banca de Certo/Errado">
                                 <div class="mt-3">
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" id="novaBancaPenaliza" class="form-checkbox">
@@ -157,17 +147,62 @@
                     </div>
 
                     <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-700 border-b pb-2">Gerenciar Disciplinas</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-lg font-medium mb-2">Adicionar Nova Disciplina</h4>
+                                <label for="novaDisciplinaNome" class="block text-sm font-medium text-gray-700 mb-1">Nome da Disciplina:</label>
+                                <input type="text" id="novaDisciplinaNome" class="form-input" placeholder="Ex: Matemática">
+                                <label for="novaDisciplinaDescricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição (Opcional):</label>
+                                <input type="text" id="novaDisciplinaDescricao" class="form-input" placeholder="Ex: Raciocínio Lógico e Quantitativo">
+                                <button id="btnAdicionarDisciplina" class="btn mt-4">Adicionar Disciplina</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium mb-2">Disciplinas Cadastradas</h4>
+                                <ul id="listaDisciplinas" class="list-disc pl-5 max-h-48 overflow-y-auto custom-scrollbar border p-3 rounded-md bg-gray-50">
+                                    <li class="text-gray-500">Nenhuma disciplina cadastrada ou carregando...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-700 border-b pb-2">Gerenciar Modelos de Prova</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-lg font-medium mb-2">Adicionar Novo Modelo</h4>
+                                <label for="novoModeloNome" class="block text-sm font-medium text-gray-700 mb-1">Nome do Modelo:</label>
+                                <input type="text" id="novoModeloNome" class="form-input" placeholder="Ex: Simulado Básico CEBRASPE">
+
+                                <label for="selectModeloBanca" class="block text-sm font-medium text-gray-700 mb-1">Banca do Modelo:</label>
+                                <select id="selectModeloBanca" class="form-select"></select>
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1 mt-3">Temas do Modelo:</label>
+                                <div id="modelosTemasCheckboxContainer" class="max-h-40 overflow-y-auto custom-scrollbar border p-3 rounded-md bg-gray-50">
+                                    <p class="text-gray-500">Selecione uma banca para ver os temas disponíveis.</p>
+                                </div>
+                                <button id="btnSalvarModeloProva" class="btn mt-4">Salvar Modelo de Prova</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium mb-2">Modelos de Prova Cadastrados</h4>
+                                <ul id="listaModelosProvas" class="list-disc pl-5 max-h-48 overflow-y-auto custom-scrollbar border p-3 rounded-md bg-gray-50">
+                                    <li class="text-gray-500">Nenhum modelo cadastrado ou carregando...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
                         <h3 class="text-xl font-semibold mb-3 text-gray-700 border-b pb-2">Adicionar Pergunta Manualmente</h3>
-                        <label for="manualBancaSelect" class="block text-sm font-medium text-gray-700">Banca:</label>
+                        <label for="manualBancaSelect" class="block text-sm font-medium text-gray-700 mb-1">Banca:</label>
                         <select id="manualBancaSelect" class="form-select mb-2"></select>
-                        <label for="manualDisciplina" class="block text-sm font-medium text-gray-700">Disciplina:</label>
-                        <input type="text" id="manualDisciplina" class="form-input mb-2">
-                        <label for="manualTema" class="block text-sm font-medium text-gray-700">Tema:</label>
+                        <label for="manualDisciplinaSelect" class="block text-sm font-medium text-gray-700 mb-1">Disciplina:</label>
+                        <select id="manualDisciplinaSelect" class="form-select mb-2"></select> <label for="manualTema" class="block text-sm font-medium text-gray-700 mb-1">Tema:</label>
                         <input type="text" id="manualTema" class="form-input mb-2">
-                        <label for="manualPergunta" class="block text-sm font-medium text-gray-700">Pergunta:</label>
+                        <label for="manualPergunta" class="block text-sm font-medium text-gray-700 mb-1">Pergunta:</label>
                         <textarea id="manualPergunta" class="form-textarea mb-2" rows="3"></textarea>
                         <div id="manualOpcoesContainer" class="mb-2"></div>
-                        <label class="block text-sm font-medium text-gray-700">Opção Correta:</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Opção Correta:</label>
                         <div id="manualOpcaoCorretaContainer" class="mb-4"></div>
                         <button id="btnSalvarPerguntaManual" class="btn">Salvar Pergunta</button>
                     </div>
@@ -176,7 +211,7 @@
                         <h3 class="text-xl font-semibold mb-3 text-gray-700 border-b pb-2">Importar Perguntas via CSV</h3>
                         <p class="text-sm text-gray-600 mb-2">
                             Selecione um arquivo CSV. Formato esperado: `banca,disciplina,tema,pergunta,opcao1,opcao2,...,opcaoN,correta` (índice 0-based para correta).
-                            O número de colunas 'opcaoX' deve corresponder ao configurado para a banca.
+                            O número de colunas 'opcaoX' deve corresponder ao configurado para a banca. Disciplinas e Temas serão adicionados automaticamente se não existirem.
                         </p>
                         <input type="file" id="csvFileInput" accept=".csv" class="form-input mb-2">
                         <button id="btnImportarCSV" class="btn">Importar CSV</button>
@@ -201,7 +236,8 @@
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow">
                         <h3 class="text-xl font-semibold mb-3 text-gray-700">Acertos / (Acertos + Erros)</h3>
-                        <div class="chart-container h-48 max-h-64"> <canvas id="overallAccuracyChart"></canvas>
+                        <div class="chart-container h-48 max-h-64">
+                            <canvas id="overallAccuracyChart"></canvas>
                         </div>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg shadow">
@@ -240,11 +276,20 @@
     </div>
 
     <script>
-        // Data (simulating perguntas.json)
         let appData = {
             bancas: {
                 "CEBRASPE": { num_opcoes: 2, descricao: "Banca CEBRASPE (Certo/Errado)", penaliza_erro: true },
                 "FCC": { num_opcoes: 5, descricao: "Banca FCC (Múltipla Escolha)", penaliza_erro: false }
+            },
+            disciplinas: { // NEW: Explicitly store disciplines
+                "Matemática": { descricao: "Estudos de números e quantidades." },
+                "Português": { descricao: "Estudos da língua portuguesa." },
+                "Direito Constitucional": { descricao: "Estudos da Constituição Federal." },
+                "Informática": { descricao: "Estudos de hardware e software." }
+            },
+            modelosProvas: { // NEW: Store quiz presets
+                "Simulado CEBRASPE Básico": { banca: "CEBRASPE", temas: ["Álgebra", "Gramática"] },
+                "FCC Fundamentos": { banca: "FCC", temas: ["Interpretação de Texto", "Direitos Fundamentais"] }
             },
             perguntas: [
                 { banca: "CEBRASPE", disciplina: "Matemática", tema: "Álgebra", pergunta: "A soma de dois números pares é sempre par.", opcoes: ["Certo", "Errado"], correta: 0 },
@@ -254,13 +299,12 @@
                 { banca: "CEBRASPE", disciplina: "Informática", tema: "Hardware", pergunta: "RAM é uma memória volátil, ou seja, perde seus dados ao desligar o computador.", opcoes: ["Certo", "Errado"], correta: 0 },
                 { banca: "FCC", disciplina: "Matemática", tema: "Geometria", pergunta: "Quantos lados tem um heptágono?", opcoes: ["5", "6", "7", "8", "9"], correta: 2 }
             ],
-            estatisticas: { // Updated structure to separate by discipline and theme
-                disciplinas: {}, // { "Matemática": { acertos: X, erros: Y, total: Z } }
-                temas: {} // { "Álgebra": { acertos: X, erros: Y, total: Z } }
+            estatisticas: {
+                disciplinas: {},
+                temas: {}
             }
         };
 
-        // Quiz State
         let quizAtual = {
             perguntas: [],
             indiceAtual: 0,
@@ -269,12 +313,10 @@
             bancaSelecionadaInfo: null
         };
 
-        // Chart instances
         let desempenhoDisciplinaChartInstance = null;
         let overallAccuracyChartInstance = null;
         let mostPracticedThemesChartInstance = null;
 
-        // DOM Elements
         const mainContent = document.getElementById('mainContent');
         const sections = {
             questionario: document.getElementById('sectionQuestionario'),
@@ -291,6 +333,7 @@
         const quizSetupDiv = document.getElementById('quizSetup');
         const quizAreaDiv = document.getElementById('quizArea');
         const quizResultsDiv = document.getElementById('quizResults');
+        const selectModeloProva = document.getElementById('selectModeloProva'); // NEW
         const selectBanca = document.getElementById('selectBanca');
         const temasCheckboxContainer = document.getElementById('temasCheckboxContainer');
         const btnIniciarQuiz = document.getElementById('btnIniciarQuiz');
@@ -303,15 +346,30 @@
         const resultadoFinalTexto = document.getElementById('resultadoFinalTexto');
         const btnNovoQuestionario = document.getElementById('btnNovoQuestionario');
 
-        // Gerenciar UI Elements
+        // Gerenciar UI Elements - Bancas
         const novaBancaNome = document.getElementById('novaBancaNome');
         const novaBancaNumOpcoes = document.getElementById('novaBancaNumOpcoes');
         const novaBancaDescricao = document.getElementById('novaBancaDescricao');
         const novaBancaPenaliza = document.getElementById('novaBancaPenaliza');
         const btnAdicionarBanca = document.getElementById('btnAdicionarBanca');
         const listaBancasUl = document.getElementById('listaBancas');
+
+        // Gerenciar UI Elements - Disciplinas (NEW)
+        const novaDisciplinaNome = document.getElementById('novaDisciplinaNome');
+        const novaDisciplinaDescricao = document.getElementById('novaDisciplinaDescricao');
+        const btnAdicionarDisciplina = document.getElementById('btnAdicionarDisciplina');
+        const listaDisciplinasUl = document.getElementById('listaDisciplinas');
+
+        // Gerenciar UI Elements - Modelos de Prova (NEW)
+        const novoModeloNome = document.getElementById('novoModeloNome');
+        const selectModeloBanca = document.getElementById('selectModeloBanca');
+        const modelosTemasCheckboxContainer = document.getElementById('modelosTemasCheckboxContainer');
+        const btnSalvarModeloProva = document.getElementById('btnSalvarModeloProva');
+        const listaModelosProvasUl = document.getElementById('listaModelosProvas');
+
+        // Gerenciar UI Elements - Perguntas
         const manualBancaSelect = document.getElementById('manualBancaSelect');
-        const manualDisciplina = document.getElementById('manualDisciplina');
+        const manualDisciplinaSelect = document.getElementById('manualDisciplinaSelect'); // Changed to select
         const manualTema = document.getElementById('manualTema');
         const manualPergunta = document.getElementById('manualPergunta');
         const manualOpcoesContainer = document.getElementById('manualOpcoesContainer');
@@ -338,10 +396,11 @@
             const storedData = localStorage.getItem('quizAppData');
             if (storedData) {
                 const loadedData = JSON.parse(storedData);
-                // Merge loaded data with default structure, useful for new fields
                 appData.bancas = loadedData.bancas || {};
                 appData.perguntas = loadedData.perguntas || [];
-                // Ensure nested objects exist for statistics
+                // NEW: Load disciplines and models, ensuring defaults if not present
+                appData.disciplinas = loadedData.disciplinas || {};
+                appData.modelosProvas = loadedData.modelosProvas || {};
                 appData.estatisticas.disciplinas = loadedData.estatisticas?.disciplinas || {};
                 appData.estatisticas.temas = loadedData.estatisticas?.temas || {};
             }
@@ -358,8 +417,16 @@
             navButtons[sectionName].classList.add('active');
             if (sectionName === 'estatisticas') renderEstatisticas();
             if (sectionName === 'gerenciar') {
-                populateBancaSelect(manualBancaSelect);
                 renderListaBancas();
+                populateBancaSelect(manualBancaSelect);
+                populateBancaSelect(selectModeloBanca); // NEW: For models management
+                manualBancaSelect.dispatchEvent(new Event('change')); // Trigger options for manual add
+                selectModeloBanca.dispatchEvent(new Event('change')); // NEW: Trigger themes for models
+                
+                renderListaDisciplinas(); // NEW: Render disciplines list
+                populateDisciplinaSelect(manualDisciplinaSelect); // NEW: Populate discipline select
+                
+                renderListaModelosProvas(); // NEW: Render models list
             }
         }
 
@@ -373,6 +440,30 @@
             }
         }
 
+        // NEW: Populate Disciplina Select
+        function populateDisciplinaSelect(selectElement) {
+            selectElement.innerHTML = '<option value="">Selecione uma disciplina</option>';
+            const sortedDisciplines = Object.keys(appData.disciplinas).sort();
+            sortedDisciplines.forEach(discName => {
+                const option = document.createElement('option');
+                option.value = discName;
+                option.textContent = discName;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // NEW: Populate Modelo Prova Select
+        function populateModeloProvaSelect(selectElement) {
+            selectElement.innerHTML = '<option value="">Selecione um modelo de prova</option>';
+            const sortedModels = Object.keys(appData.modelosProvas).sort();
+            sortedModels.forEach(modelName => {
+                const option = document.createElement('option');
+                option.value = modelName;
+                option.textContent = modelName;
+                selectElement.appendChild(option);
+            });
+        }
+
         // Navigation Logic
         navButtons.questionario.addEventListener('click', () => showSection('questionario'));
         navButtons.gerenciar.addEventListener('click', () => showSection('gerenciar'));
@@ -381,15 +472,37 @@
         // --- Questionário Logic ---
         function carregarBancasNoQuestionario() {
             populateBancaSelect(selectBanca);
+            populateModeloProvaSelect(selectModeloProva); // NEW
             selectBanca.addEventListener('change', carregarTemasParaBanca);
             carregarTemasParaBanca(); // Initial call if a banca is pre-selected
         }
 
-        function carregarTemasParaBanca() {
-            const bancaSelecionada = selectBanca.value;
-            temasCheckboxContainer.innerHTML = '';
+        // NEW: Handle Model selection in Quiz Setup
+        selectModeloProva.addEventListener('change', () => {
+            const modeloNome = selectModeloProva.value;
+            if (modeloNome && appData.modelosProvas[modeloNome]) {
+                const modelo = appData.modelosProvas[modeloNome];
+                selectBanca.value = modelo.banca;
+                selectBanca.dispatchEvent(new Event('change')); // Trigger theme load for selected banca
+                // Select themes from model
+                setTimeout(() => { // Give a moment for themes to load
+                    const checkboxes = temasCheckboxContainer.querySelectorAll('input[name="temasQuiz"]');
+                    checkboxes.forEach(cb => {
+                        cb.checked = modelo.temas.includes(cb.value);
+                    });
+                }, 50);
+            } else {
+                // If no model selected or model invalid, clear selections
+                selectBanca.value = '';
+                selectBanca.dispatchEvent(new Event('change'));
+            }
+        });
+
+        function carregarTemasParaBanca(container = temasCheckboxContainer) {
+            const bancaSelecionada = (container === temasCheckboxContainer) ? selectBanca.value : selectModeloBanca.value;
+            container.innerHTML = '';
             if (!bancaSelecionada) {
-                temasCheckboxContainer.innerHTML = '<p class="text-gray-500">Selecione uma banca para ver os temas disponíveis.</p>';
+                container.innerHTML = '<p class="text-gray-500">Selecione uma banca para ver os temas disponíveis.</p>';
                 return;
             }
 
@@ -399,7 +512,7 @@
             ].sort();
 
             if (temasDaBanca.length === 0) {
-                temasCheckboxContainer.innerHTML = '<p class="text-gray-500">Nenhum tema disponível para esta banca.</p>';
+                container.innerHTML = '<p class="text-gray-500">Nenhum tema disponível para esta banca.</p>';
                 return;
             }
 
@@ -408,9 +521,9 @@
                 div.classList.add('flex', 'items-center', 'mb-1');
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
-                checkbox.id = `tema-${tema.replace(/\s+/g, '-')}`;
+                checkbox.id = `tema-${tema.replace(/\s+/g, '-')}-${container.id}`; // Unique ID for different containers
                 checkbox.value = tema;
-                checkbox.name = "temasQuiz";
+                checkbox.name = (container === temasCheckboxContainer) ? "temasQuiz" : "temasModelo";
                 checkbox.classList.add('form-checkbox', 'h-4', 'w-4', 'text-teal-600');
                 
                 const label = document.createElement('label');
@@ -420,7 +533,7 @@
                 
                 div.appendChild(checkbox);
                 div.appendChild(label);
-                temasCheckboxContainer.appendChild(div);
+                container.appendChild(div);
             });
         }
 
@@ -442,7 +555,6 @@
                 alert("Nenhuma pergunta encontrada para os critérios selecionados.");
                 return;
             }
-            // Shuffle questions
             quizAtual.perguntas.sort(() => Math.random() - 0.5); 
 
             quizAtual.bancaSelecionadaInfo = appData.bancas[banca];
@@ -488,7 +600,6 @@
                 
                 div.appendChild(radio);
                 div.appendChild(label);
-                // Allow clicking the whole div to select radio
                 div.addEventListener('click', () => { radio.checked = true; });
                 optionsContainer.appendChild(div);
             });
@@ -506,13 +617,11 @@
             const disciplina = perguntaAtual.disciplina;
             const tema = perguntaAtual.tema;
 
-            // Update statistics for disciplines
             if (!appData.estatisticas.disciplinas[disciplina]) {
                 appData.estatisticas.disciplinas[disciplina] = { acertos: 0, erros: 0, total: 0 };
             }
             appData.estatisticas.disciplinas[disciplina].total++;
 
-            // Update statistics for themes
             if (!appData.estatisticas.temas[tema]) {
                 appData.estatisticas.temas[tema] = { acertos: 0, erros: 0, total: 0 };
             }
@@ -531,7 +640,6 @@
                 feedbackText.textContent = `Errado. A resposta correta era: ${perguntaAtual.opcoes[perguntaAtual.correta]}`;
                 feedbackText.className = "text-lg font-medium my-3 text-red-600";
                 if (quizAtual.bancaSelecionadaInfo && quizAtual.bancaSelecionadaInfo.penaliza_erro) {
-                    // Logic for penalization if needed, e.g., quizAtual.acertos--;
                     feedbackText.textContent += " (Esta banca penaliza erros)";
                 }
             }
@@ -562,9 +670,12 @@
             quizAreaDiv.classList.add('hidden');
             quizResultsDiv.classList.add('hidden');
             carregarTemasParaBanca(); // Reset themes based on current banca
+            selectModeloProva.value = ''; // Clear selected model
         });
 
         // --- Gerenciar Conteúdo Logic ---
+
+        // Bancas Logic
         btnAdicionarBanca.addEventListener('click', () => {
             const nome = novaBancaNome.value.trim();
             const numOpcoes = parseInt(novaBancaNumOpcoes.value);
@@ -587,8 +698,9 @@
             novaBancaDescricao.value = '';
             novaBancaPenaliza.checked = false;
             renderListaBancas();
-            populateBancaSelect(manualBancaSelect); // Update other selects
+            populateBancaSelect(manualBancaSelect);
             populateBancaSelect(selectBanca);
+            populateBancaSelect(selectModeloBanca); // NEW
         });
 
         function renderListaBancas() {
@@ -606,6 +718,90 @@
             }
         }
         
+        // NEW: Disciplinas Logic
+        btnAdicionarDisciplina.addEventListener('click', () => {
+            const nome = novaDisciplinaNome.value.trim();
+            const descricao = novaDisciplinaDescricao.value.trim();
+
+            if (!nome) {
+                alert("Nome da disciplina é obrigatório.");
+                return;
+            }
+            if (appData.disciplinas[nome]) {
+                alert("Uma disciplina com este nome já existe.");
+                return;
+            }
+            appData.disciplinas[nome] = { descricao: descricao };
+            saveDataToLocalStorage();
+            alert(`Disciplina "${nome}" adicionada com sucesso!`);
+            novaDisciplinaNome.value = '';
+            novaDisciplinaDescricao.value = '';
+            renderListaDisciplinas();
+            populateDisciplinaSelect(manualDisciplinaSelect); // Update the select dropdown
+        });
+
+        function renderListaDisciplinas() {
+            listaDisciplinasUl.innerHTML = '';
+            if (Object.keys(appData.disciplinas).length === 0) {
+                listaDisciplinasUl.innerHTML = '<li class="text-gray-500">Nenhuma disciplina cadastrada.</li>';
+                return;
+            }
+            const sortedDisciplines = Object.keys(appData.disciplinas).sort();
+            sortedDisciplines.forEach(discName => {
+                const info = appData.disciplinas[discName];
+                const li = document.createElement('li');
+                li.textContent = `${discName} - ${info.descricao || 'Sem descrição'}`;
+                li.classList.add('text-sm', 'text-gray-700', 'py-1');
+                listaDisciplinasUl.appendChild(li);
+            });
+        }
+
+        // NEW: Modelos de Prova Logic
+        selectModeloBanca.addEventListener('change', () => {
+            carregarTemasParaBanca(modelosTemasCheckboxContainer); // Reuse function with specific container
+        });
+
+        btnSalvarModeloProva.addEventListener('click', () => {
+            const nomeModelo = novoModeloNome.value.trim();
+            const bancaModelo = selectModeloBanca.value;
+            const temasModelo = Array.from(modelosTemasCheckboxContainer.querySelectorAll('input[name="temasModelo"]:checked')).map(cb => cb.value);
+
+            if (!nomeModelo || !bancaModelo || temasModelo.length === 0) {
+                alert("Nome do modelo, banca e pelo menos um tema são obrigatórios.");
+                return;
+            }
+            if (appData.modelosProvas[nomeModelo]) {
+                alert("Um modelo de prova com este nome já existe.");
+                return;
+            }
+
+            appData.modelosProvas[nomeModelo] = { banca: bancaModelo, temas: temasModelo };
+            saveDataToLocalStorage();
+            alert(`Modelo de prova "${nomeModelo}" salvo com sucesso!`);
+            novoModeloNome.value = '';
+            selectModeloBanca.value = '';
+            selectModeloBanca.dispatchEvent(new Event('change')); // Clear themes checkbox
+            renderListaModelosProvas();
+            populateModeloProvaSelect(selectModeloProva); // Update quiz section dropdown
+        });
+
+        function renderListaModelosProvas() {
+            listaModelosProvasUl.innerHTML = '';
+            if (Object.keys(appData.modelosProvas).length === 0) {
+                listaModelosProvasUl.innerHTML = '<li class="text-gray-500">Nenhum modelo de prova cadastrado.</li>';
+                return;
+            }
+            const sortedModels = Object.keys(appData.modelosProvas).sort();
+            sortedModels.forEach(modelName => {
+                const model = appData.modelosProvas[modelName];
+                const li = document.createElement('li');
+                li.textContent = `${modelName} - Banca: ${model.banca}, Temas: ${model.temas.join(', ')}`;
+                li.classList.add('text-sm', 'text-gray-700', 'py-1');
+                listaModelosProvasUl.appendChild(li);
+            });
+        }
+
+        // Pergunta Manual Logic
         manualBancaSelect.addEventListener('change', () => {
             const nomeBanca = manualBancaSelect.value;
             manualOpcoesContainer.innerHTML = '';
@@ -654,7 +850,7 @@
 
         btnSalvarPerguntaManual.addEventListener('click', () => {
             const banca = manualBancaSelect.value;
-            const disciplina = manualDisciplina.value.trim();
+            const disciplina = manualDisciplinaSelect.value; // Get from select
             const tema = manualTema.value.trim();
             const pergunta = manualPergunta.value.trim();
             
@@ -680,12 +876,13 @@
             appData.perguntas.push({ banca, disciplina, tema, pergunta, opcoes, correta });
             saveDataToLocalStorage();
             alert("Pergunta salva com sucesso!");
-            manualDisciplina.value = '';
+            manualBancaSelect.value = ''; // Clear banca
+            manualDisciplinaSelect.value = ''; // Clear disciplina
             manualTema.value = '';
             manualPergunta.value = '';
-            // Reset options and correct choice
-            manualBancaSelect.dispatchEvent(new Event('change')); 
+            manualBancaSelect.dispatchEvent(new Event('change')); // Reset options and correct choice
             carregarTemasParaBanca(); // Update themes in quiz section
+            selectModeloBanca.dispatchEvent(new Event('change')); // NEW: Update themes for models in manage section
         });
 
         btnImportarCSV.addEventListener('click', () => {
@@ -725,13 +922,19 @@
                             continue;
                         }
 
+                        // NEW: Add discipline if it doesn't exist
+                        if (!appData.disciplinas[disciplina]) {
+                            appData.disciplinas[disciplina] = { descricao: "Adicionada via CSV" };
+                            console.log(`Nova disciplina "${disciplina}" adicionada via CSV.`);
+                        }
+
                         const numOpcoesEsperado = appData.bancas[banca].num_opcoes;
                         const opcoes = [];
                         for (let j = 1; j <= numOpcoesEsperado; j++) {
                             if (row[`opcao${j}`]) {
                                 opcoes.push(row[`opcao${j}`]);
                             } else {
-                                break; // Stop if an option is missing
+                                break;
                             }
                         }
 
@@ -755,8 +958,11 @@
                         console.warn("Erros na importação CSV:", errosImportacao);
                     }
                     csvImportStatus.className = "text-sm mt-2 text-green-600";
-                    csvFileInput.value = ''; // Reset file input
+                    csvFileInput.value = '';
                     carregarTemasParaBanca(); // Update themes in quiz section
+                    renderListaDisciplinas(); // NEW: Refresh disciplines list
+                    populateDisciplinaSelect(manualDisciplinaSelect); // NEW: Refresh discipline select
+                    selectModeloBanca.dispatchEvent(new Event('change')); // NEW: Refresh themes for models in manage section
                 } catch (error) {
                     csvImportStatus.textContent = "Erro ao processar o arquivo CSV. Verifique o formato.";
                     csvImportStatus.className = "text-sm mt-2 text-red-600";
@@ -858,19 +1064,19 @@
             desempenhoDisciplinaChartInstance = new Chart(desempenhoDisciplinaChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: labels.map(label => label.length > 16 ? label.substring(0, 13) + '...' : label), // Wrap long labels
+                    labels: labels.map(label => label.length > 16 ? label.substring(0, 13) + '...' : label),
                     datasets: [
                         {
                             label: 'Acertos',
                             data: acertosData,
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)', // Soft Teal
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
                             borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 1
                         },
                         {
                             label: 'Erros',
                             data: errosData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.6)', // Soft Red
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
                             borderColor: 'rgba(255, 99, 132, 1)',
                             borderWidth: 1
                         }
@@ -890,7 +1096,6 @@
                                     let label = context.dataset.label || '';
                                     if (label) { label += ': '; }
                                     if (context.parsed.y !== null) { label += context.parsed.y; }
-                                    // Show full label on tooltip if truncated
                                     const originalLabel = labels[context.dataIndex];
                                     if (originalLabel.length > 16) {
                                         label += ` (${originalLabel})`;
@@ -908,7 +1113,7 @@
             const themesData = Object.entries(data)
                 .filter(([_, stats]) => stats.total > 0)
                 .map(([theme, stats]) => ({ theme, total: stats.total }))
-                .sort((a, b) => b.total - a.total); // Sort by total attempts
+                .sort((a, b) => b.total - a.total);
 
             const labels = themesData.map(d => d.theme);
             const totalAttempts = themesData.map(d => d.total);
@@ -927,11 +1132,11 @@
             mostPracticedThemesChartInstance = new Chart(mostPracticedThemesChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: labels.map(label => label.length > 16 ? label.substring(0, 13) + '...' : label), // Wrap long labels
+                    labels: labels.map(label => label.length > 16 ? label.substring(0, 13) + '...' : label),
                     datasets: [{
                         label: 'Total de Práticas',
                         data: totalAttempts,
-                        backgroundColor: 'rgba(153, 102, 255, 0.6)', // Purple-ish
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
                         borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1
                     }]
@@ -1026,9 +1231,6 @@
             loadDataFromLocalStorage();
             showSection('questionario'); // Default section
             carregarBancasNoQuestionario();
-            renderListaBancas();
-            populateBancaSelect(manualBancaSelect);
-            manualBancaSelect.dispatchEvent(new Event('change')); // Trigger options for manual add
             document.getElementById('currentYear').textContent = new Date().getFullYear();
         });
 
